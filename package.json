@@ -1,0 +1,66 @@
+{
+	"name": "pi-provider-codebuddy",
+	"version": "0.1.0",
+	"description": "Pi / oh-my-pi provider extension for CodeBuddy subscriptions (OAuth login, dynamic model catalog)",
+	"type": "module",
+	"engines": {
+		"node": ">=22.19.0"
+	},
+	"license": "MIT",
+	"author": "Fred Tan <fredtan4go@gmail.com> (https://github.com/fredtanxo)",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fredtanxo/pi-provider-codebuddy.git"
+	},
+	"bugs": {
+		"url": "https://github.com/fredtanxo/pi-provider-codebuddy/issues"
+	},
+	"homepage": "https://github.com/fredtanxo/pi-provider-codebuddy#readme",
+	"keywords": [
+		"pi-package",
+		"pi",
+		"codebuddy",
+		"provider"
+	],
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md"
+	],
+	"pi": {
+		"extensions": [
+			"./dist/index.js"
+		]
+	},
+	"scripts": {
+		"build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.js --external:@earendil-works/*",
+		"check": "tsc --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"test": "vitest run",
+		"prepare": "husky && npm run build",
+		"prepublishOnly": "npm run build"
+	},
+	"lint-staged": {
+		"*.{ts,js,mjs}": [
+			"biome check --write --no-errors-on-unmatched"
+		]
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-ai": "*",
+		"@earendil-works/pi-coding-agent": "*"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.6.4",
+		"@commitlint/cli": "^21.2.4",
+		"@commitlint/config-conventional": "^21.2.4",
+		"@earendil-works/pi-ai": "^1.4.0",
+		"@earendil-works/pi-coding-agent": "^1.4.0",
+		"@types/node": "^24.0.0",
+		"esbuild": "^0.28.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.6.0",
+		"typescript": "^5.9.0",
+		"vitest": "^5.0.5"
+	}
+}
