@@ -1,6 +1,6 @@
 {
   "name": "pi-provider-codebuddy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pi / oh-my-pi provider extension for CodeBuddy subscriptions (OAuth login, dynamic model catalog)",
   "type": "module",
   "engines": {
