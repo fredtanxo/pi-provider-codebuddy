@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-11-02
+
+### 修复
+
+- **omp 下新开会话 session credits 不重置**：omp 只在进程启动时发一次 `session_start`，此后新建/恢复/fork/树导航分别发其私有事件 `session_switch` / `session_branch` / `session_tree`；插件此前只监听 `session_start`，导致累计值跨会话带入。现在这些事件都会重建会话累计（pi 不受影响，pi 在每次会话切换时都会重发 `session_start`）。
+
 ## [0.1.0] - 2026-10-31
 
 首个公开发布。

@@ -97,6 +97,32 @@ describe("registerCreditDisplay", () => {
     expect(call?.[1]).toContain("CodeBuddy session: 0.25 credits");
   });
 
+  it("rebuilds from the new session's entries on omp session_switch instead of carrying the old tally", () => {
+    const { pi, handlers } = makePi();
+    registerCreditDisplay(pi as never);
+    // omp emits session_start once per process; later session changes come as
+    // session_switch/branch/tree with a different sessionManager.
+    const { ctx, entries } = makeCtx();
+    entries.push({
+      type: "message",
+      message: { role: "assistant", provider: "codebuddy-cn", usage: { codebuddyCredit: 0.5 } },
+    });
+    handlers.session_start({}, ctx);
+
+    const { ctx: nextCtx, setStatus: nextStatus } = makeCtx();
+    handlers.message_end(
+      {
+        message: { role: "assistant", provider: "codebuddy-cn", usage: { codebuddyCredit: 0.25 } },
+      },
+      nextCtx,
+    );
+    // Pre-fix behavior: 0.75 (old tally carried across sessions).
+    handlers.session_switch({ reason: "new" }, nextCtx);
+
+    const call = nextStatus.mock.calls.filter((c) => c[0] === STATUS_KEY).at(-1);
+    expect(call?.[1]).toContain("CodeBuddy session: 0 credits");
+  });
+
   it("clears the status line when the active model is not CodeBuddy and nothing was charged", () => {
     const { pi, handlers } = makePi();
     registerCreditDisplay(pi as never);

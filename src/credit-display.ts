@@ -24,8 +24,10 @@ export function registerCreditDisplay(pi: ExtensionAPI, service = new QuotaServi
   let refreshId = 0;
   // Identity of the account behind the active model, so the status line tracks the right quota.
   let activeIdentity: string | undefined;
-  // Running credit tally: rebuilt once at session_start, then fed by each message_end
-  // event. Rescanning the whole session per message would copy every entry each time.
+  // Running credit tally: rebuilt at each session lifecycle event (session_start
+  // on pi and omp startup; session_switch/branch/tree on omp session changes), then
+  // fed by each message_end event. Rescanning the whole session per message would
+  // copy every entry each time.
   let credits: SessionCredits = { total: 0, charged: 0, unknown: 0 };
   const sum = { value: 0 };
 
@@ -81,10 +83,22 @@ export function registerCreditDisplay(pi: ExtensionAPI, service = new QuotaServi
     if (id === refreshId) publish(ctx);
   };
 
-  pi.on("session_start", (_event, ctx) => {
+  const refreshTally = (_event: unknown, ctx: ExtensionContext) => {
     rebuildCredits(ctx);
     void refresh(ctx);
-  });
+  };
+  // session_start: pi and omp startup. session_switch/branch/tree: omp's private
+  // lifecycle events for new/resume/fork/tree navigation; pi never emits them, and
+  // omp emits session_start only once per process, so both must be listened to.
+  // omp's event names aren't in pi's ExtensionAPI overloads, hence the cast.
+  const onEvent = pi.on.bind(pi) as (
+    event: string,
+    handler: (event: unknown, ctx: ExtensionContext) => void,
+  ) => () => void;
+  onEvent("session_start", refreshTally);
+  onEvent("session_switch", refreshTally);
+  onEvent("session_branch", refreshTally);
+  onEvent("session_tree", refreshTally);
   pi.on("message_end", (event, ctx) => {
     accumulateMessage(credits, sum, event.message);
     publish(ctx);
