@@ -18,6 +18,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # npm 22's bundled CLI predates `npm stage`; 11.21.1 supports it on node 22.
+      - run: npm install -g npm@11.21.1
       - run: npm run check
       - run: npm run lint
       - run: npm test
